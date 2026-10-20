@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coleta · Projeto A3</title>
+<link rel="icon" href="/coleta-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#050706; --ink:#e9efe9; --muted:#8a968d; --green:#214D3A; --lime:#D8ED9B; --paper:#F7F8F2;
+  --W:410px; --H:860px; --R:66px; --SI:13px; --SR:54px;
+  --phone-scale:1;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
+body{
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 48%, rgba(46,96,70,.32), transparent 70%),
+    radial-gradient(ellipse 120% 80% at 50% 110%, #0d1410 0%, transparent 60%),
+    linear-gradient(180deg,#070a08,#020302);
+}
+.brand{position:fixed;top:24px;left:28px;display:flex;align-items:center;gap:12px;z-index:10;user-select:none}
+.brand img{width:34px;height:34px;border-radius:9px}
+.brand b{font-size:17px;font-weight:700;letter-spacing:-.3px}
+.brand span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.ctrl{position:fixed;top:22px;right:24px;z-index:10;display:flex;gap:8px}
+.ctrl button{font:600 13px Inter,sans-serif;color:var(--ink);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+  padding:10px 16px;border-radius:999px;cursor:pointer;backdrop-filter:blur(10px);display:flex;align-items:center;gap:8px;transition:background .2s,border-color .2s}
+.ctrl button:hover{background:rgba(255,255,255,.13)}
+.ctrl button.on{background:var(--lime);color:#153C2C;border-color:var(--lime)}
+.hint{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);font-size:12px;color:var(--muted);z-index:10;transition:opacity .6s;user-select:none;white-space:nowrap}
+.stage{position:fixed;inset:0;perspective:3200px;perspective-origin:50% 45%;display:grid;place-items:center;cursor:grab;touch-action:none}
+.stage.drag{cursor:grabbing}
+.stage.locked{cursor:default}
+.shadow{position:absolute;left:50%;top:50%;width:420px;height:70px;border-radius:50%;
+  background:radial-gradient(ellipse at center, rgba(0,0,0,.75), transparent 70%);filter:blur(14px);pointer-events:none}
+.anchor{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d}
+.rig{position:absolute;left:0;top:0;width:var(--W);height:var(--H);margin:calc(var(--H) / -2) 0 0 calc(var(--W) / -2);transform-style:preserve-3d;--home-area:max(45px, calc(45px / var(--phone-scale)))}
+.slab{position:absolute;inset:0;border-radius:var(--R);transform-style:preserve-3d;
+  background:linear-gradient(90deg,#5d5a55 0%,#b9b5ad 7%,#8f8b84 22%,#d2cec6 48%,#8f8b84 74%,#c3bfb7 93%,#5d5a55 100%)}
+.btn{position:absolute;width:5px;border-radius:2px;background:linear-gradient(90deg,#6c6963,#cfcbc3,#7e7b75)}
+.face{position:absolute;inset:0;border-radius:var(--R);backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.front{background:#000;box-shadow:inset 0 0 0 2.5px #a9a59d, inset 0 0 0 3.5px #2a2a2a, inset 0 0 0 13px #030303}
+.back{transform:rotateY(180deg);
+  background:radial-gradient(120% 90% at 30% 20%, #4a4c4d 0%, #2e3031 45%, #1d1f20 100%);
+  box-shadow:inset 0 0 0 2.5px #a9a59d, inset 0 0 0 4px #1b1b1b}
+.back::after{content:"";position:absolute;inset:0;border-radius:var(--R);opacity:.35;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.25'/%3E%3C/svg%3E")}
+.cam{position:absolute;top:30px;left:30px;width:96px;height:196px;border-radius:48px;
+  background:linear-gradient(145deg,#3a3c3d,#202223);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.12),0 6px 18px rgba(0,0,0,.6),inset 0 2px 6px rgba(255,255,255,.08)}
+.lens{position:absolute;left:12px;width:72px;height:72px;border-radius:50%;
+  background:radial-gradient(circle at 50% 50%, #0b0d10 0 30%, #1a2230 34%, #070809 46%, #2b2d2f 60%, #9a968e 63%, #3a3b3d 68%, #161718 100%);
+  box-shadow:0 0 0 2px #0c0c0c, inset 0 0 6px rgba(0,0,0,.9)}
+.lens::after{content:"";position:absolute;left:22px;top:20px;width:12px;height:9px;border-radius:50%;background:rgba(170,200,255,.45);filter:blur(1px)}
+.l1{top:12px}.l2{top:104px}
+.flash{position:absolute;left:138px;top:46px;width:22px;height:22px;border-radius:50%;background:radial-gradient(#f4ecd6,#bdb39a);box-shadow:0 0 0 2px #2a2c2d}
+.mic{position:absolute;left:144px;top:96px;width:9px;height:9px;border-radius:50%;background:#0d0d0d}
+.backlogo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);opacity:.5;width:70px;height:70px;
+  }
+.screen{position:absolute;inset:var(--SI);border-radius:var(--SR);overflow:hidden;background:#000;cursor:default;isolation:isolate}
+.punch{position:absolute;top:13px;left:50%;width:22px;height:22px;margin-left:-11px;border-radius:50%;z-index:30;
+  background:radial-gradient(circle at 40% 38%, #233042 0 18%, #0a0c10 30%, #000 70%);box-shadow:0 0 0 1.5px #111}
+.glare{position:absolute;inset:0;z-index:40;pointer-events:none;mix-blend-mode:screen;
+  background:linear-gradient(calc(115deg + var(--gy,0) * 1deg), transparent 35%, rgba(255,255,255,.07) 45%, rgba(255,255,255,.015) 55%, transparent 65%)}
+.status{position:absolute;top:0;left:0;right:0;height:50px;z-index:25;display:flex;align-items:center;justify-content:space-between;
+  padding:4px 34px 0 40px;font:600 16px Inter,sans-serif;color:#fff;transition:color .35s;pointer-events:none}
+.status.dark{color:#20382C}
+.status svg{fill:currentColor}
+.sicons{display:flex;gap:6px;align-items:center}
+.home{position:absolute;inset:0;transition:transform .5s cubic-bezier(.2,.8,.2,1),filter .5s}
+.home.away{transform:scale(.92);filter:blur(6px) brightness(.7)}
+.wall{position:absolute;inset:0;
+  background:
+    radial-gradient(70% 45% at 85% 12%, rgba(216,237,155,.55), transparent 70%),
+    radial-gradient(80% 50% at 10% 55%, rgba(53,140,96,.65), transparent 70%),
+    radial-gradient(90% 60% at 70% 95%, rgba(20,70,50,.95), transparent 70%),
+    linear-gradient(170deg,#1d4a36,#0f2a1f 55%,#0a1c15)}
+.widget{position:absolute;top:70px;left:22px;right:22px;height:150px;border-radius:26px;padding:20px 22px;
+  background:rgba(255,255,255,.12);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.14);color:#fff}
+.widget .d{font-size:13px;font-weight:600;opacity:.8}
+.widget .t{font-size:54px;font-weight:600;letter-spacing:-2px;line-height:1.1;margin-top:4px}
+.widget .s{font-size:12px;opacity:.75;margin-top:6px}
+.grid{position:absolute;top:248px;left:22px;right:22px;display:grid;grid-template-columns:repeat(4,1fr);row-gap:22px}
+.app{display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.app:where(button){border:0;background:none;color:inherit;font:inherit;padding:0}
+.app:focus-visible,.indicator:focus-visible{outline:3px solid var(--lime);outline-offset:4px}
+.app i{width:66px;height:66px;border-radius:17px;display:grid;place-items:center;box-shadow:0 4px 14px rgba(0,0,0,.25);transition:transform .15s}
+.app:active i{transform:scale(.9)}
+.app i img{width:100%;height:100%;border-radius:17px;display:block}
+.app i svg{width:32px;height:32px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.app em{font-style:normal;font-size:12px;font-weight:500;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.4)}
+.shake{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
+.dots{position:absolute;bottom:128px;left:0;right:0;display:flex;justify-content:center;gap:7px}
+.dots b{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.45)}.dots b:first-child{background:#fff}
+.dock{position:absolute;bottom:22px;left:14px;right:14px;height:96px;border-radius:34px;display:grid;grid-template-columns:repeat(4,1fr);place-items:center;
+  background:rgba(255,255,255,.16);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12)}
+.dock .app em{display:none}
+.appview{position:absolute;inset:0;z-index:20;background:var(--paper);border-radius:var(--SR);overflow:hidden;
+  transform-origin:0 0;visibility:hidden;pointer-events:none}
+.appview.open{visibility:visible;pointer-events:auto}
+.appview iframe{position:absolute;top:50px;left:0;right:0;bottom:var(--home-area);width:100%;height:calc(100% - 50px - var(--home-area));border:0;background:var(--paper)}
+.splash{position:absolute;inset:0;z-index:5;background:#214D3A;display:grid;place-items:center;transition:opacity .45s .35s}
+.splash img{width:96px;height:96px;border-radius:24px}
+.appview.ready .splash{opacity:0;pointer-events:none}
+.indicator{position:absolute;bottom:0;left:0;right:0;height:var(--home-area);z-index:6;display:grid;place-items:center;cursor:pointer;border:0;background:var(--paper);padding:0}
+.indicator b{width:136px;height:5px;border-radius:3px;background:#20382C;opacity:.85}
+.homebar{position:absolute;bottom:8px;left:50%;width:136px;height:5px;margin-left:-68px;border-radius:3px;background:#fff;opacity:.85;z-index:21;pointer-events:none}
+@media (max-width:700px){.brand span{display:none}.hint{display:none}}
+
+.stage.flat{perspective:none}
+.stage.flat .anchor,.stage.flat .rig{transform-style:flat}
+.stage.flat .slab:not(.mid), .stage.flat .back{display:none}
+.stage.flat .front{transform:none!important;backface-visibility:visible;-webkit-backface-visibility:visible;box-shadow:inset 0 0 0 2.5px #a9a59d, inset 0 0 0 3.5px #2a2a2a, inset 0 0 0 13px #030303, 0 0 0 1.5px #d6d2ca, 0 0 0 4px #85827b, 0 0 0 5px #3c3b38}
+.stage.flat .glare, .appview.open ~ .glare{display:none}
+@media (max-width:640px){.brand{top:16px;left:16px}.ctrl{top:14px;right:16px}.ctrl button{padding:9px 13px;font-size:12px}}
+</style>
+</head>
+<body>
+<div class="brand"><img src="/coleta-icon.png" alt=""><div><b>coleta.</b><span>Projeto A3 · App de coleta de lixo</span></div></div>
+<div class="ctrl"><button id="lock" type="button"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg><span>Centralizar</span></button></div>
+<div class="hint" id="hint">Arraste para girar · role para aproximar · dois cliques no fundo para virar</div>
+
+<div class="stage" id="stage">
+  <div class="shadow" id="shadow"></div>
+  <div class="anchor">
+  <div class="rig" id="rig">
+    <div id="slabs"></div>
+    <div class="face back">
+      <div class="cam"><div class="lens l1"></div><div class="lens l2"></div></div>
+      <div class="flash"></div><div class="mic"></div>
+      <svg class="backlogo" viewBox="0 0 100 100" fill="none" stroke="#bdb9b1" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M71 20C63 31 50 36 37 38 20 41 12 57 18 73 33 78 51 76 62 66 75 54 77 37 71 20Z"/><path d="M58 44C44 53 33 63 26 77M37 49l3 11"/></svg>
+    </div>
+    <div class="face front" id="front">
+      <div class="screen" id="screen">
+        <div class="status" id="status"><span id="clock">9:41</span>
+          <span class="sicons">
+            <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.2c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.4 11.4.4 8.5.4S3 1.4 1 3.4l1.2 1.3C3.9 3.1 6.1 2.2 8.5 2.2zm0 3.6c1.4 0 2.7.5 3.8 1.4l1.2-1.3C12.1 4.7 10.4 4 8.5 4s-3.6.7-5 1.9l1.2 1.3c1.1-.9 2.4-1.4 3.8-1.4zm0 3.6c.5 0 1 .2 1.4.5L8.5 11.8 7.1 9.9c.4-.3.9-.5 1.4-.5z"/></svg>
+            <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="17" height="9" rx="2"/><rect x="24.5" y="4.5" width="2" height="4" rx="1" opacity=".45"/></svg>
+          </span></div>
+        <div class="home" id="home">
+          <div class="wall"></div>
+          <div class="widget"><div class="d" id="wdate">segunda-feira, 20 de outubro</div><div class="t" id="wtime">9:41</div><div class="s">Toque em <b>Coleta</b> para abrir o app</div></div>
+          <div class="grid">
+            <button class="app" id="openColeta" type="button" aria-label="Abrir app Coleta"><i><img id="coletaIcon" src="/coleta-icon.png" alt=""></i><em>Coleta</em></button>
+            <div class="app fake"><i style="background:linear-gradient(160deg,#5b8def,#2f5fc4)"><svg viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg></i><em>Mapas</em></div>
+            <div class="app fake"><i style="background:linear-gradient(160deg,#f4f4f4,#cfcfcf)"><svg viewBox="0 0 24 24" style="stroke:#e5484d"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></i><em>Agenda</em></div>
+            <div class="app fake"><i style="background:linear-gradient(160deg,#ffd257,#f2a93b)"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM9 9h6M9 13h6M9 17h3"/></svg></i><em>Notas</em></div>
+            <div class="app fake"><i style="background:linear-gradient(160deg,#3a3d42,#1d1f22)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg></i><em>Relógio</em></div>
+            <div class="app fake"><i style="background:linear-gradient(160deg,#7ad3a0,#2f9e65)"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg></i><em>Finanças</em></div>
+            <div class="app fake"><i style="background:linear-gradient(160deg,#a78bfa,#6d4ad8)"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></i><em>Música</em></div>
+            <div class="app fake"><i style="background:linear-gradient(160deg,#8e9aa6,#5c6670)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></i><em>Ajustes</em></div>
+          </div>
+          <div class="dots"><b></b><b></b></div>
+          <div class="dock">
+            <div class="app fake"><i style="background:linear-gradient(160deg,#5fd36f,#2fae46)"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></i><em>Telefone</em></div>
+            <div class="app fake"><i style="background:linear-gradient(160deg,#5ac8fa,#2b8fe0)"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></i><em>Mensagens</em></div>
+            <div class="app fake"><i style="background:linear-gradient(160deg,#ffffff,#dfe6ef)"><svg viewBox="0 0 24 24" style="stroke:#2b6fd6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></i><em>Navegador</em></div>
+            <div class="app fake"><i style="background:linear-gradient(160deg,#4a4d52,#26282b)"><svg viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-3l-2.5-3z"/><circle cx="12" cy="13" r="3.5"/></svg></i><em>Câmera</em></div>
+          </div>
+        </div>
+        <div class="homebar" id="homebar"></div>
+        <div class="appview" id="appview">
+          <div class="splash"><img src="/coleta-icon.png" alt=""></div>
+          <iframe id="frame" src="/app/" title="App Coleta"></iframe>
+          <button class="indicator" id="indicator" type="button" aria-label="Voltar para a tela inicial" title="Voltar para a tela inicial"><b></b></button>
+        </div>
+        <div class="punch"></div>
+        <div class="glare"></div>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const W = 410, H = 860, D = 40, N = 30;
+  const rig = document.getElementById('rig'), stage = document.getElementById('stage'), slabs = document.getElementById('slabs');
+  const shadow = document.getElementById('shadow'), screen = document.getElementById('screen');
+  // build the body thickness from stacked slabs, with side buttons in the middle layers
+  for (let i = 0; i <= N; i++) {
+    const z = -D / 2 + (i * D) / N;
+    const s = document.createElement('div');
+    s.className = 'slab';
+    const edge = i === 0 || i === N;
+    const inset = edge ? 1.5 : 0;
+    s.style.inset = inset + 'px';
+    s.style.transform = `translateZ(${z}px)`;
+    if (edge) s.style.filter = 'brightness(.8)';
+    if (i > N / 2 - 6 && i < N / 2 + 6) {
+      for (const [side, top, h] of [['r', 250, 106], ['l', 168, 40], ['l', 238, 70], ['l', 322, 70]]) {
+        const b = document.createElement('div');
+        b.className = 'btn';
+        b.style.top = top + 'px'; b.style.height = h + 'px';
+        b.style[side === 'r' ? 'right' : 'left'] = '-4px';
+        s.appendChild(b);
+      }
+    }
+    if (i === N / 2) s.classList.add('mid');
+    slabs.appendChild(s);
+  }
+  const front = document.getElementById('front');
+  front.style.transform = `translateZ(${D / 2 + 0.6}px)`;
+  document.querySelector('.back').style.transform = `rotateY(180deg) translateZ(${D / 2 + 0.6}px)`;
+
+  // state
+  const small = innerWidth < 640;
+  let rx = small ? 0 : -4, ry = small ? 0 : -24, zoom = 1, vx = 0, vy = 0;
+  let dragging = false, locked = false, lastX = 0, lastY = 0, anim = null, flat = false, appOpen = false;
+  const lockBtn = document.getElementById('lock');
+  const fit = () => {
+    const narrow = innerWidth < 640;
+    const byH = (innerHeight - (narrow ? 150 : 96)) / H, byW = (innerWidth - 32) / W;
+    return Math.max(0.3, Math.min(byH, byW, 1.1));
+  };
+  let F = fit(); addEventListener('resize', () => { F = fit(); render(); });
+
+  stage.addEventListener('pointerdown', e => {
+    if (locked || screen.contains(e.target) && isFrontVisible()) return;
+    if (e.target.closest('.ctrl')) return;
+    dragging = true; anim = null; stage.classList.add('drag');
+    lastX = e.clientX; lastY = e.clientY; vx = vy = 0;
+    stage.setPointerCapture(e.pointerId); hideHint();
+  });
+  stage.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - lastX, dy = e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+    vy = dx * 0.42; vx = -dy * 0.32;
+    ry += vy; rx = Math.max(-70, Math.min(70, rx + vx));
+  });
+  const end = () => {
+    if (!dragging) return;
+    dragging = false; stage.classList.remove('drag');
+    if (appOpen) tween(0, 0, zoom, 700, false); // the app stays readable: spring back to the front
+  };
+  stage.addEventListener('pointerup', end); stage.addEventListener('pointercancel', end);
+  stage.addEventListener('wheel', e => {
+    if (locked) return; e.preventDefault();
+    zoom = Math.max(0.6, Math.min(1.5, zoom * (e.deltaY > 0 ? 0.94 : 1.06))); hideHint();
+  }, { passive: false });
+  stage.addEventListener('dblclick', e => {
+    if (locked || screen.contains(e.target)) return;
+    tween(rx, Math.round((ry + 180) / 180) * 180, zoom, 900, true);
+  });
+  function norm(a) { return (((a % 360) + 540) % 360) - 180; }
+  function isFrontVisible() { return Math.abs(norm(ry)) < 90; }
+  function tween(toRx, toRy, toZoom, ms, flip) {
+    const from = { rx, ry, zoom }, start = performance.now();
+    const target = flip ? toRy : Math.round(ry / 360) * 360 + toRy; // shortest way back to the front
+    anim = t => {
+      const k = Math.min(1, (t - start) / ms), e = 1 - Math.pow(1 - k, 4);
+      rx = from.rx + (toRx - from.rx) * e; ry = from.ry + (target - from.ry) * e; zoom = from.zoom + (toZoom - from.zoom) * e;
+      if (k >= 1) anim = null;
+    };
+    vx = vy = 0;
+  }
+  window.__front = (cb) => { if (flat) return cb && cb(); tween(0, 0, zoom, 650, false); if (cb) setTimeout(cb, 300); };
+  lockBtn.addEventListener('click', () => {
+    locked = !locked;
+    lockBtn.classList.toggle('on', locked);
+    lockBtn.querySelector('span').textContent = locked ? 'Liberar movimento' : 'Centralizar';
+    stage.classList.toggle('locked', locked);
+    if (locked) tween(0, 0, 1, 700, false);
+  });
+  window.__pose = (x, y) => { rx = x; ry = y; vx = vy = 0; anim = null; };
+  setTimeout(() => hideHint(), 9000);
+  let hinted = false; function hideHint() { if (!hinted) { hinted = true; document.getElementById('hint').style.opacity = 0; } }
+
+  // At rest and facing front, the phone is drawn flat (no 3D), so the app inside renders sharp.
+  function render() {
+    const S = F * zoom;
+    rig.style.setProperty('--phone-scale', S);
+    if (flat) {
+      rig.style.zoom = S;
+      rig.style.transform = 'none';
+    } else {
+      rig.style.zoom = 1;
+      rig.style.transform = `scale(${S}) rotateX(${rx}deg) rotateY(${ry}deg)`;
+    }
+    const a = Math.cos(ry * Math.PI / 180);
+    shadow.style.transform = `translate(-50%, ${H * S / 2 + 8}px) scale(${(0.55 + 0.45 * Math.abs(a)) * zoom}, ${zoom})`;
+  }
+  function setFlat(v) {
+    if (v === flat) return;
+    flat = v; stage.classList.toggle('flat', v);
+  }
+  function frame(t) {
+    if (anim) anim(t);
+    else if (!dragging && Math.abs(vx) + Math.abs(vy) > 0.02) {
+      ry += vy; rx = Math.max(-70, Math.min(70, rx + vx)); vx *= 0.93; vy *= 0.93;
+    }
+    const resting = !dragging && !anim && Math.abs(vx) + Math.abs(vy) <= 0.02;
+    if (resting && Math.abs(norm(ry)) < 0.6 && Math.abs(rx) < 0.6) { rx = 0; ry = 0; vx = vy = 0; setFlat(true); }
+    else if (!resting || Math.abs(norm(ry)) >= 0.6 || Math.abs(rx) >= 0.6) setFlat(false);
+    render();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  if (!small) setTimeout(() => { if (!dragging && !anim) tween(0, 0, 1, 1500, false); }, 700);
+
+  // clock
+  const pad = n => String(n).padStart(2, '0');
+  function tick() {
+    const d = new Date(), hm = `${d.getHours()}:${pad(d.getMinutes())}`;
+    document.getElementById('clock').textContent = hm; document.getElementById('wtime').textContent = hm;
+    const ds = d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }); document.getElementById('wdate').textContent = ds.charAt(0).toUpperCase() + ds.slice(1);
+  }
+  tick(); setInterval(tick, 10000);
+
+  // open / close the app like a real launch
+  const appview = document.getElementById('appview'), home = document.getElementById('home'), status = document.getElementById('status'), homebar = document.getElementById('homebar');
+  const icon = document.getElementById('coletaIcon');
+  const appFrame = document.getElementById('frame');
+  let isOpen = false, appLoaded = false;
+  function readyApp() {
+    appLoaded = true;
+    if (isOpen) appview.classList.add('ready');
+  }
+  appFrame.addEventListener('load', () => {
+    readyApp();
+    appFrame.contentWindow.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeApp();
+    });
+  });
+  if (appFrame.contentDocument?.readyState === 'complete' && appFrame.contentDocument.URL !== 'about:blank') readyApp();
+  function iconRect() {
+    const s = screen.getBoundingClientRect(), i = icon.getBoundingClientRect();
+    const k = screen.offsetWidth / s.width; // undo outer scale (front-facing)
+    return { x: (i.left - s.left) * k, y: (i.top - s.top) * k, w: i.width * k, h: i.height * k };
+  }
+  function collapsed() {
+    const r = iconRect(), sw = screen.offsetWidth, sh = screen.offsetHeight;
+    return `translate(${r.x}px, ${r.y}px) scale(${r.w / sw}, ${r.h / sh})`;
+  }
+  function openApp() {
+    if (isOpen) return; isOpen = true;
+    appOpen = true; if (!flat) tween(0, 0, zoom, 600, false);
+    appview.style.transition = 'none'; appview.style.transform = collapsed(); appview.style.borderRadius = '120px'; appview.style.opacity = '0.4';
+    appview.classList.add('open'); appview.classList.remove('ready');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      appview.style.transition = 'transform .55s cubic-bezier(.2,.85,.25,1), border-radius .55s, opacity .25s';
+      appview.style.transform = 'translate(0,0) scale(1,1)'; appview.style.borderRadius = 'var(--SR)'; appview.style.opacity = '1';
+      home.classList.add('away'); status.classList.add('dark'); homebar.style.opacity = 0;
+      if (appLoaded) appview.classList.add('ready');
+    }));
+  }
+  function closeApp() {
+    if (!isOpen) return; isOpen = false; appOpen = false;
+    appview.classList.remove('ready');
+    appview.style.transition = 'transform .45s cubic-bezier(.3,.7,.2,1), border-radius .45s, opacity .45s';
+    appview.style.transform = collapsed(); appview.style.borderRadius = '120px'; appview.style.opacity = '0';
+    home.classList.remove('away'); status.classList.remove('dark'); homebar.style.opacity = .85;
+    setTimeout(() => { if (!isOpen) appview.classList.remove('open'); }, 460);
+  }
+  document.getElementById('openColeta').addEventListener('click', openApp);
+  document.getElementById('indicator').addEventListener('click', closeApp);
+  document.querySelectorAll('.fake').forEach(a => a.addEventListener('click', () => {
+    const i = a.querySelector('i'); i.classList.remove('shake'); void i.offsetWidth; i.classList.add('shake');
+  }));
+  addEventListener('keydown', e => { if (e.key === 'Escape') closeApp(); });
+})();
+</script>
+</body>
+</html>

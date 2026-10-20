@@ -93,6 +93,10 @@ Para servir a versão web exportada, execute `npm run preview` e abra `http://12
 
 Detalhes do contrato e das decisões de interface: [`docs/analise-da-api.md`](docs/analise-da-api.md).
 
+## Site de demonstração
+
+A pasta [`site-demo/`](site-demo/) contém o celular interativo e a exportação web do app em `/app/`, com publicação estática no projeto Vercel `coleta-a3`. As instruções para atualizar e publicar estão no [guia da demonstração](site-demo/README.md).
+
 ## Licenças
 
 O aviso de licença do template Expo está preservado em [`LICENSE`](LICENSE). As dependências mantêm suas próprias licenças.

@@ -7,6 +7,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   orientation: 'portrait',
   scheme: 'coleta',
   userInterfaceStyle: 'light',
+  experiments: {
+    ...config.experiments,
+    baseUrl: process.env.EXPO_BASE_URL || '',
+  },
   icon: './assets/icon.png',
   ios: { supportsTablet: true, bundleIdentifier: 'com.coleta.mobile' },
   android: {
