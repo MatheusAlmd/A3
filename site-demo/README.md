@@ -6,6 +6,7 @@ Site estático com um celular em HTML/CSS/JavaScript e o aplicativo Expo dentro 
 
 - `index.html`: celular, rotação por arraste, abertura do app e retorno pela barrinha inferior.
 - `app/`: exportação web do aplicativo.
+- `app/assets/vendor/`: fontes e imagens públicas da exportação.
 - `coleta-icon.png`: ícone da demonstração.
 - `vercel.json`: fallback das rotas do app para `app/index.html`.
 
@@ -19,9 +20,12 @@ Na raiz do repositório, em PowerShell:
 $env:EXPO_BASE_URL = '/app'
 $env:EXPO_PUBLIC_DEMO_MODE = 'true'
 npx expo export --platform web --output-dir site-demo/app
+node site-demo/prepare-export.cjs
 ```
 
 `app.config.ts` lê `EXPO_BASE_URL` em `experiments.baseUrl`. Use o prefixo `/app` para que links, JavaScript e fontes apontem para o diretório correto. Ao voltar ao desenvolvimento na raiz, limpe a variável `EXPO_BASE_URL` da sessão do terminal.
+
+A preparação troca o diretório público `assets/node_modules` por `assets/vendor` e atualiza a referência do bundle. Isso evita que fontes e imagens da exportação sejam descartadas no upload estático. O site continua sem build na Vercel; publique os arquivos já preparados.
 
 ## Publicar no projeto existente
 
