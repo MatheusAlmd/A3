@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "npm ci",
+  "buildCommand": "node scripts/vercel-build.cjs",
+  "outputDirectory": "vercel-dist",
+  "functions": {
+    "api/mock.ts": { "includeFiles": "docs/openapi.json" }
+  },
+  "rewrites": [
+    {
+      "source": "/((?:account|management|routing|openapi)(?:/.*)?)",
+      "destination": "/api/mock?__path=/$1"
+    },
+    { "source": "/app/(.*)", "destination": "/app/index.html" }
+  ]
+}

@@ -34,6 +34,8 @@ export interface MockOptions {
   log?: boolean;
   /** Serve também o app web exportado (modo executável). Recebe um caminho como /index.html. */
   web?: { read(file: string): Buffer | null };
+  /** Segredo fixo do JWT (ex.: várias instâncias serverless aceitam os mesmos tokens). */
+  secret?: string;
 }
 
 const API_PATH = /^\/(account|management|routing|openapi)(\/|$)/;
@@ -314,7 +316,7 @@ function optimizeStops<T extends Coordinate>(start: Coordinate | null, stops: T[
 export function createMockApp(options: MockOptions = {}) {
   const { simulate = true, tokenMinutes = 8 * 60, log = false, web } = options;
   const db = createStore();
-  const secret = randomBytes(32);
+  const secret = options.secret ? Buffer.from(options.secret) : randomBytes(32);
 
   // ---------- autenticação ----------
   const b64 = (value: Buffer | string) => Buffer.from(value).toString('base64url');

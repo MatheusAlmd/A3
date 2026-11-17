@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 
-const root = path.resolve(__dirname, 'app');
+const root = path.resolve(process.env.EXPORT_DIR || path.join(__dirname, 'app'));
 const inside = relative => {
   const target = path.resolve(root, relative);
   if (!target.startsWith(root + path.sep)) throw new Error('Caminho fora da exportação.');

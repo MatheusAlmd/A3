@@ -135,6 +135,16 @@ Detalhes do contrato e das decisões de interface: [`docs/analise-da-api.md`](do
 
 A pasta [`site-demo/`](site-demo/) contém o celular interativo e a exportação web do app em `/app/`, com publicação estática no projeto Vercel `coleta-a3`. As instruções para atualizar e publicar estão no [guia da demonstração](site-demo/README.md).
 
+## Publicação na Vercel (app + mock da API)
+
+O `vercel.json` da raiz publica tudo num só projeto, com build na própria Vercel:
+
+- `/` é o celular interativo de `site-demo/`, e `/app/` é o app web em modo real (`EXPO_PUBLIC_API_URL=same-origin`).
+- `/account`, `/management`, `/routing` e `/openapi` são atendidas pela função `api/mock.ts`, que roda o mesmo mock de `mock-server/`.
+- Defina `MOCK_JWT_SECRET` nas variáveis do projeto para que todas as instâncias aceitem os mesmos tokens.
+
+Os dados ficam na memória da instância da função: voltam ao estado inicial quando a Vercel recicla a instância, e contas criadas pelo cadastro podem sumir. As contas de teste continuam funcionando.
+
 ## Licenças
 
 O aviso de licença do template Expo está preservado em [`LICENSE`](LICENSE). As dependências mantêm suas próprias licenças.

@@ -47,3 +47,6 @@ yarn-error.*
 # executável
 build/
 release/
+
+# build da Vercel
+vercel-dist/
