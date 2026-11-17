@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Pressable, View, type ViewStyle } from 'react-native';
 import Svg, { Circle, G, Path, Rect, Text as SvgText } from 'react-native-svg';
 import { Truck } from 'lucide-react-native';
@@ -14,6 +14,7 @@ export default function CityMap({
   onTruck,
 }: CityMapProps) {
   const [width, setWidth] = useState(360);
+  const pressable = useRef<View>(null);
   const anchor = locations[0] || stops[0] || point;
   const anchorLatitude = Number(anchor?.latitude ?? -23.5554);
   const anchorLongitude = Number(anchor?.longitude ?? -46.6576);
@@ -38,6 +39,7 @@ export default function CityMap({
       style={{ height, overflow: 'hidden', borderRadius: 20, backgroundColor: '#E6ECDC' }}
     >
       <Pressable
+        ref={pressable}
         accessibilityRole={onPoint ? 'button' : 'image'}
         accessibilityLabel={
           onPoint ? 'Escolher ponto no mapa ilustrativo' : 'Mapa ilustrativo das posições'
@@ -45,8 +47,18 @@ export default function CityMap({
         onPress={
           onPoint
             ? (e) => {
-                const x = (e.nativeEvent.locationX / width) * 360;
-                const y = (e.nativeEvent.locationY / height) * 230;
+                // No navegador o clique não traz locationX/Y: calcula pela posição do elemento.
+                const native = e.nativeEvent as any;
+                let localX = Number(native.locationX);
+                let localY = Number(native.locationY);
+                if (!Number.isFinite(localX) || !Number.isFinite(localY)) {
+                  const rect = (pressable.current as any)?.getBoundingClientRect?.();
+                  if (!rect || !Number.isFinite(native.clientX)) return;
+                  localX = native.clientX - rect.left;
+                  localY = native.clientY - rect.top;
+                }
+                const x = (localX / width) * 360;
+                const y = (localY / height) * 230;
                 onPoint({
                   latitude: base.latitude + (115 - y) / 12000,
                   longitude: base.longitude + (x - 180) / 12000,
