@@ -32,6 +32,8 @@
   "devDependencies": {
     "@types/node": "^26.6.5",
     "@types/react": "~19.2.2",
+    "esbuild": "^0.28.2",
+    "postject": "^1.0.0-alpha.6",
     "prettier": "^3.9.10",
     "tsx": "^4.23.15",
     "typescript": "~6.0.3"
@@ -43,6 +45,8 @@
     "web": "expo start --web",
     "mock": "node --import tsx mock-server/index.ts",
     "dev:api": "node scripts/dev-api.cjs",
+    "build:exe": "node scripts/build-exe.cjs",
+    "standalone": "node --import tsx mock-server/standalone.ts",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test tests/*.test.ts",
     "export:web": "expo export --platform web --output-dir web-dist --max-workers 1",

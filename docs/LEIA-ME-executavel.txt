@@ -1,0 +1,38 @@
+COLETA · A3 — versão executável (Windows)
+==========================================
+
+Como abrir
+----------
+1. Dê dois cliques em Coleta.exe.
+2. Uma janela preta abre com os dados de acesso e o navegador abre sozinho
+   em http://localhost:5073. Se o navegador não abrir, digite esse endereço.
+3. Mantenha a janela preta aberta enquanto usar o app. Fechar a janela
+   encerra o app.
+
+Não precisa instalar nada nem ter internet. O app e a API de demonstração
+estão dentro do Coleta.exe.
+
+Contas de teste (senha de todas: coleta123)
+-------------------------------------------
+  Gestor      camila@exemplo.com
+  Motorista   rafael@exemplo.com
+  Cidadão     mariana@exemplo.com
+
+Também é possível criar uma conta de cidadão em "Criar conta de cidadão".
+
+Bom saber
+---------
+- Os dados ficam na memória: ao fechar e abrir de novo, tudo volta ao estado
+  inicial.
+- Recarregar a página (F5) encerra a sessão; basta entrar de novo.
+- Para ver dois perfis ao mesmo tempo, use uma janela anônima para o segundo.
+- Celular na mesma rede Wi-Fi: abra no navegador do celular o endereço
+  "No celular" mostrado na janela preta. O Windows pode perguntar sobre o
+  firewall; permita em redes privadas.
+- Se o Windows mostrar "O Windows protegeu o computador", clique em
+  "Mais informações" e depois em "Executar assim mesmo".
+- Se a porta 5073 estiver ocupada, o app usa a próxima livre (5074, 5075...)
+  e mostra o endereço certo na janela preta.
+
+A API é um mock que segue o contrato docs/openapi.json do projeto, até o
+back-end real ficar disponível. Código: https://github.com/MatheusAlmd/A3

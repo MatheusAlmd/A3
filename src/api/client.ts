@@ -21,10 +21,10 @@ import type {
 } from './types';
 
 export const DEMO_MODE = process.env.EXPO_PUBLIC_DEMO_MODE !== 'false';
-export const API_URL = (process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5073').replace(
-  /\/$/,
-  '',
-);
+// 'same-origin': o app é servido pelo próprio servidor da API (versão executável).
+const configuredUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5073';
+export const API_URL =
+  configuredUrl === 'same-origin' ? '' : configuredUrl.replace(/\/$/, '');
 let session: Login | null = null;
 let onExpired: (() => void) | null = null;
 export function configureSession(value: Login | null, expired?: () => void) {

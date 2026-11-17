@@ -67,6 +67,10 @@ Para subir só o mock: `npm run mock`. As variáveis `MOCK_PORT`, `MOCK_SIMULATE
 
 Quando o back-end real estiver pronto, basta rodá-lo na porta 5073 no lugar do mock, ou apontar `EXPO_PUBLIC_API_URL` para ele.
 
+## Executável para Windows
+
+`npm run build:exe` gera `release/Coleta.exe` (cerca de 90 MB), com o app web e o mock da API dentro, mais um `LEIA-ME.txt`. No outro computador não é preciso instalar Node, Git nem ter internet: dois cliques no `.exe` abrem o navegador em `http://localhost:5073`, com as mesmas contas de teste. O executável usa o recurso Single Executable Applications do Node e é gerado para o sistema em que o comando roda.
+
 ## Conectar à API
 
 Copie `.env.example` para `.env` e configure a URL do servidor:

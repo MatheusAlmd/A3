@@ -10,11 +10,19 @@ const lan = process.argv.includes('--lan');
 const port = Number(process.env.MOCK_PORT || 5073);
 
 function lanAddress() {
-  for (const list of Object.values(os.networkInterfaces()))
-    for (const item of list || [])
-      if (item.family === 'IPv4' && !item.internal && !item.address.startsWith('169.254.'))
-        return item.address;
-  return null;
+  // Prefere o IP da rede local (Wi-Fi/cabo) a interfaces de VPN.
+  const all = Object.values(os.networkInterfaces())
+    .flat()
+    .filter((i) => i && i.family === 'IPv4' && !i.internal && !i.address.startsWith('169.254.'));
+  const rank = (a) =>
+    a.startsWith('192.168.')
+      ? 0
+      : a.startsWith('10.')
+        ? 1
+        : /^172\.(1[6-9]|2\d|3[01])\./.test(a)
+          ? 2
+          : 3;
+  return all.map((i) => i.address).sort((a, b) => rank(a) - rank(b))[0] || null;
 }
 const host = lan ? lanAddress() : 'localhost';
 if (lan && !host) console.warn('Não encontrei o IP da rede. Usando localhost.');

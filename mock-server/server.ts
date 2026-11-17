@@ -1,9 +1,9 @@
 // Mock HTTP do back-end ProjetoA3 (docs/openapi.json). Substitui temporariamente a API real:
 // mesmas rotas, formatos, códigos de status, JWT e ProblemDetails, com dados em memória.
 import { createHmac, randomBytes, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
-import { readFileSync } from 'node:fs';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import path from 'node:path';
+import openapiSpec from '../docs/openapi.json';
 import type {
   Collection,
   CollectionStatus,
@@ -32,7 +32,25 @@ export interface MockOptions {
   tokenMinutes?: number;
   /** Mostra uma linha por requisição no terminal. */
   log?: boolean;
+  /** Serve também o app web exportado (modo executável). Recebe um caminho como /index.html. */
+  web?: { read(file: string): Buffer | null };
 }
+
+const API_PATH = /^\/(account|management|routing|openapi)(\/|$)/;
+const MIME: Record<string, string> = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.ttf': 'font/ttf',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.txt': 'text/plain; charset=utf-8',
+};
 
 const ONLINE_MS = 3 * 60_000;
 const MAX_DETOUR_KM = 15;
@@ -294,10 +312,9 @@ function optimizeStops<T extends Coordinate>(start: Coordinate | null, stops: T[
 }
 
 export function createMockApp(options: MockOptions = {}) {
-  const { simulate = true, tokenMinutes = 8 * 60, log = false } = options;
+  const { simulate = true, tokenMinutes = 8 * 60, log = false, web } = options;
   const db = createStore();
   const secret = randomBytes(32);
-  let openapi: string | null = null;
 
   // ---------- autenticação ----------
   const b64 = (value: Buffer | string) => Buffer.from(value).toString('base64url');
@@ -924,8 +941,7 @@ export function createMockApp(options: MockOptions = {}) {
     },
   }));
   on('GET', '/openapi/v1.json', () => {
-    openapi ??= readFileSync(path.join(__dirname, '..', 'docs', 'openapi.json'), 'utf8');
-    return { body: JSON.parse(openapi) };
+    return { body: openapiSpec };
   });
 
   // ---------- servidor ----------
@@ -979,6 +995,17 @@ export function createMockApp(options: MockOptions = {}) {
     const pathname = url.pathname.replace(/\/+$/, '');
     try {
       if (req.method === 'OPTIONS') return send(res, 204);
+      if (web && (req.method === 'GET' || req.method === 'HEAD') && !API_PATH.test(pathname)) {
+        // App web: arquivo exportado ou, para rotas do app (/login, /citizen...), o index.html.
+        let file = pathname || '/index.html';
+        let content = web.read(file);
+        if (!content && !path.extname(file)) content = web.read((file = '/index.html'));
+        if (!content) throw notFound('Arquivo não encontrado.');
+        res.statusCode = 200;
+        res.setHeader('Content-Type', MIME[path.extname(file)] || 'application/octet-stream');
+        res.setHeader('Cache-Control', file.includes('/_expo/') ? 'max-age=31536000' : 'no-cache');
+        return res.end(req.method === 'HEAD' ? undefined : content);
+      }
       const matches = table.filter(([, pattern]) => pattern.test(pathname));
       const match = matches.find(([method]) => method === req.method);
       if (!match) {
