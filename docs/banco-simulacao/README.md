@@ -4,6 +4,8 @@ Botão **Simular 1 mês** na aba Impacto do gestor. Simula um mês de uso do Col
 sobre dados públicos conferidos. Moradores, pedidos e operação são simulados. Cada número tem selo:
 oficial, derivado, estimado ou hipótese.
 
+Para o back: `docs/para-o-anthony/simulador.md` (parte para ler e prompt para o Claude).
+
 ## Onde está cada parte
 
 | Parte | Arquivo |
