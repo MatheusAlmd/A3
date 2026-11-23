@@ -29,6 +29,14 @@ A regra 2 sai da geolocalização. As regras 3 e 4 dependem de conferência (fot
 moderação do gestor). Hoje a foto não chega ao servidor; se ela for usada na validação, o front
 precisa enviá-la e o back deve descartá-la depois de conferir.
 
+**Decisões em aberto (combinar com o Matheus antes de implementar):**
+
+1. Ponto a menos de 2 km: o pedido novo é **recusado** (o cidadão vê o ponto existente) ou é
+   **juntado** ao ponto existente? O prompt abaixo usa "recusar" até essa decisão sair.
+2. Foto: hoje ela não chega ao servidor, então o back não consegue conferir por ela se o lixo está
+   em residência. Opções: (a) o app envia a foto só para essa conferência e o back apaga logo
+   depois, sem gravar; (b) a conferência fica com o gestor, sem foto no servidor.
+
 **Está pronto quando:** dois cidadãos diferentes não conseguem abrir pontos ativos a menos de
 2 km um do outro, e o erro volta em ProblemDetails com uma mensagem clara em português.
 
