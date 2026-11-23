@@ -35,15 +35,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-font',
     'expo-secure-store',
     [
-      'expo-image-picker',
-      {
-        photosPermission:
-          'O Coleta usa uma foto do lixo para ajudar a conferir o ponto de coleta. A foto não é guardada.',
-        cameraPermission:
-          'O Coleta usa a câmera para fotografar o lixo no ponto de coleta. A foto não é guardada.',
-      },
-    ],
-    [
       'expo-location',
       {
         locationWhenInUsePermission:

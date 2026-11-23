@@ -1,15 +1,11 @@
 import React, { useState } from 'react';
-import { Image, Pressable, View } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
+import { Pressable, View } from 'react-native';
 import * as Location from 'expo-location';
 import {
   ArrowRight,
-  Camera,
   Check,
   Clock3,
-  ImagePlus,
   ShieldCheck,
-  X,
   LocateFixed,
   MapPin,
   RefreshCw,
@@ -19,7 +15,6 @@ import { api, DEMO_MODE } from '../api/client';
 import { DEMO_POINT } from '../api/demo';
 import type { DispatchPreview } from '../api/types';
 import { useResource } from '../hooks/useResource';
-import { fotoDaSessao, guardarFotoDaSessao } from '../state/sessionPhotos';
 import {
   Badge,
   Button,
@@ -147,91 +142,6 @@ export function GeoPicker({
   );
 }
 
-// Foto do lixo: opcional, fica só na memória desta sessão. Não é enviada nem guardada.
-export function PhotoPicker({
-  uri,
-  onChange,
-}: {
-  uri: string | null;
-  onChange: (v: string | null) => void;
-}) {
-  const action = useAction();
-  const pick = async (camera: boolean) => {
-    const result = await action.run(async () => {
-      if (camera) {
-        const perm = await ImagePicker.requestCameraPermissionsAsync();
-        if (!perm.granted)
-          throw new Error('A câmera não foi autorizada. Escolha uma foto da galeria.');
-      }
-      const options: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], quality: 0.6 };
-      return camera
-        ? ImagePicker.launchCameraAsync(options)
-        : ImagePicker.launchImageLibraryAsync(options);
-    });
-    if (result && !result.canceled && result.assets[0]) onChange(result.assets[0].uri);
-  };
-  return (
-    <View style={{ gap: 10 }}>
-      <Txt weight="semi" size={12}>
-        Foto do lixo (opcional)
-      </Txt>
-      {uri ? (
-        <View style={{ borderRadius: 18, overflow: 'hidden', backgroundColor: c.sage }}>
-          <Image
-            source={{ uri }}
-            accessibilityLabel="Foto do lixo no ponto de coleta"
-            style={{ width: '100%', height: 190 }}
-            resizeMode="cover"
-          />
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Remover foto"
-            onPress={() => onChange(null)}
-            style={{
-              position: 'absolute',
-              top: 10,
-              right: 10,
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              backgroundColor: 'rgba(16,32,24,0.65)',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <X size={18} color={c.white} />
-          </Pressable>
-        </View>
-      ) : (
-        <Row style={{ gap: 10 }}>
-          <View style={{ flex: 1 }}>
-            <Button
-              title="Tirar foto"
-              variant="secondary"
-              icon={Camera}
-              compact
-              onPress={() => void pick(true)}
-            />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Button
-              title="Galeria"
-              variant="secondary"
-              icon={ImagePlus}
-              compact
-              onPress={() => void pick(false)}
-            />
-          </View>
-        </Row>
-      )}
-      <Txt size={11} color={c.muted}>
-        A foto fica só neste aparelho enquanto o app estiver aberto. Ela não é enviada nem guardada.
-      </Txt>
-      {!!action.error && <Notice tone="error">{action.error}</Notice>}
-    </View>
-  );
-}
-
 // Regras do ponto de coleta. A validação será feita pelo servidor (back-end), em implantação.
 export function PointRules() {
   const rules = [
@@ -254,7 +164,7 @@ export function PointRules() {
         </Txt>
       ))}
       <Txt size={11} color={c.muted}>
-        Depois da localização e da foto, o sistema vai conferir essas regras. Essa conferência está
+        Depois da localização, o sistema vai conferir essas regras. Essa conferência está
         em implantação no servidor; por enquanto o pedido segue normalmente.
       </Txt>
     </View>
@@ -266,7 +176,6 @@ export function NewCollectionScreen({ navigation }: any) {
   const [longitude, setLongitude] = useState('');
   const [address, setAddress] = useState('');
   const [description, setDescription] = useState('');
-  const [photo, setPhoto] = useState<string | null>(null);
   const [preview, setPreview] = useState<DispatchPreview | null>(null);
   const action = useAction();
   const { toast } = useFeedback();
@@ -289,7 +198,6 @@ export function NewCollectionScreen({ navigation }: any) {
       }),
     );
     if (result) {
-      if (photo) guardarFotoDaSessao(result.id, photo);
       toast(
         result.status === 'Assigned'
           ? 'Coleta solicitada e atribuída a uma rota.'
@@ -355,7 +263,6 @@ export function NewCollectionScreen({ navigation }: any) {
             multiline
             error={action.fields.description?.[0]}
           />
-          <PhotoPicker uri={photo} onChange={setPhoto} />
           {!!action.error && <Notice tone="error">{action.error}</Notice>}
           <Button
             title="Consultar disponibilidade"
@@ -382,14 +289,6 @@ export function NewCollectionScreen({ navigation }: any) {
               <Txt size={13} color={c.muted}>
                 {description}
               </Txt>
-            )}
-            {!!photo && (
-              <Image
-                source={{ uri: photo }}
-                accessibilityLabel="Foto do lixo no ponto de coleta"
-                style={{ width: '100%', height: 150, borderRadius: 14 }}
-                resizeMode="cover"
-              />
             )}
           </Card>
           <PointRules />
@@ -526,19 +425,6 @@ export function CollectionDetailScreen({ navigation, route }: any) {
               <Txt color={c.muted} size={13}>
                 {item.description}
               </Txt>
-            )}
-            {!!fotoDaSessao(item.id) && (
-              <View style={{ gap: 6 }}>
-                <Image
-                  source={{ uri: fotoDaSessao(item.id)! }}
-                  accessibilityLabel="Foto do lixo enviada nesta sessão"
-                  style={{ width: '100%', height: 170, borderRadius: 14 }}
-                  resizeMode="cover"
-                />
-                <Txt size={11} color={c.muted}>
-                  Foto desta sessão. Ela some ao fechar o app.
-                </Txt>
-              </View>
             )}
           </Card>
           <View style={{ gap: 13 }}>
