@@ -1,5 +1,23 @@
 import { ApiError } from './errors';
 import { impactSummary } from './impact';
+import {
+  ErroSimulacao,
+  apagarSimulacao,
+  criarSimulacao,
+  impactoSimulacao,
+  relatorioSimulacao,
+  simulacaoAtiva,
+  statusSimulacao,
+} from '../simulador/servico';
+
+function sim<T>(fn: () => T): T {
+  try {
+    return fn();
+  } catch (e) {
+    if (e instanceof ErroSimulacao) throw new ApiError(e.status, e.message);
+    throw e;
+  }
+}
 import type {
   Collection,
   CollectionInput,
@@ -309,7 +327,26 @@ export async function demoRequest<T>(method: string, path: string, body?: any): 
   } else {
     if (!currentUser || !currentUser.active) throw new ApiError(401, 'Entre para continuar.');
     if (p === '/account/me') value = currentUser;
-    else if (p === '/management/impact') {
+    else if (p === '/management/impact' && url.searchParams.get('simulationId')) {
+      manager();
+      value = sim(() => impactoSimulacao(url.searchParams.get('simulationId')!));
+    } else if (p === '/simulations' && method === 'POST') {
+      manager();
+      value = sim(() => criarSimulacao(body));
+    } else if (p === '/simulations') {
+      manager();
+      value = simulacaoAtiva();
+    } else if (/^\/simulations\/[^/]+\/report$/.test(p)) {
+      manager();
+      value = sim(() => relatorioSimulacao(decodeURIComponent(p.split('/')[2])));
+    } else if (/^\/simulations\/[^/]+$/.test(p) && method === 'DELETE') {
+      manager();
+      sim(() => apagarSimulacao(decodeURIComponent(p.split('/')[2])));
+      value = null;
+    } else if (/^\/simulations\/[^/]+$/.test(p)) {
+      manager();
+      value = sim(() => statusSimulacao(decodeURIComponent(p.split('/')[2])));
+    } else if (p === '/management/impact') {
       manager();
       const d = url.searchParams.get('districtId');
       value = impactSummary(Number(url.searchParams.get('days') || 30), d ? Number(d) : null);

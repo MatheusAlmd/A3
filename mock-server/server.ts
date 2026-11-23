@@ -5,6 +5,15 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import path from 'node:path';
 import openapiSpec from '../docs/openapi.json';
 import { impactSummary } from '../src/api/impact';
+import {
+  ErroSimulacao,
+  apagarSimulacao,
+  criarSimulacao,
+  impactoSimulacao,
+  relatorioSimulacao,
+  simulacaoAtiva,
+  statusSimulacao,
+} from '../src/simulador/servico';
 import type {
   Collection,
   CollectionStatus,
@@ -785,8 +794,47 @@ export function createMockApp(options: MockOptions = {}) {
         .map(summary),
     };
   });
+  // Simulador de 1 mês (mesmo motor do modo demonstração)
+  const simulacao = <T>(fn: () => T): T => {
+    try {
+      return fn();
+    } catch (e) {
+      if (e instanceof ErroSimulacao)
+        throw new HttpError(
+          e.status,
+          e.status === 404 ? 'Não encontrado' : 'Requisição inválida',
+          e.message,
+        );
+      throw e;
+    }
+  };
+  const SIM_ID = '(sim-[a-z0-9-]+)';
+  on('POST', '/simulations', ({ user, body }) => {
+    requireManager(user());
+    const status = simulacao(() => criarSimulacao(body ?? {}));
+    return { status: 202, body: status, location: `/simulations/${status.id}` };
+  });
+  on('GET', '/simulations', ({ user }) => {
+    requireManager(user());
+    return { body: simulacaoAtiva() };
+  });
+  on('GET', `/simulations/${SIM_ID}/report`, ({ user, params }) => {
+    requireManager(user());
+    return { body: simulacao(() => relatorioSimulacao(params[0])) };
+  });
+  on('GET', `/simulations/${SIM_ID}`, ({ user, params }) => {
+    requireManager(user());
+    return { body: simulacao(() => statusSimulacao(params[0])) };
+  });
+  on('DELETE', `/simulations/${SIM_ID}`, ({ user, params }) => {
+    requireManager(user());
+    simulacao(() => apagarSimulacao(params[0]));
+    return { status: 204 };
+  });
   on('GET', '/management/impact', ({ user, url }) => {
     requireManager(user());
+    const simulationId = url.searchParams.get('simulationId');
+    if (simulationId) return { body: simulacao(() => impactoSimulacao(simulationId)) };
     const days = Number(url.searchParams.get('days') || 30);
     const district = url.searchParams.get('districtId');
     return {

@@ -1,6 +1,8 @@
 import { ApiError, problemMessage } from './errors';
 import { demoRequest } from './demo';
 import type { ImpactSummary } from './impact';
+import type { RelatorioVeracidade } from '../simulador/motor';
+import type { StatusSimulacao } from '../simulador/servico';
 import type {
   Collection,
   CollectionInput,
@@ -143,15 +145,25 @@ export const api = {
     request<Collection>('POST', `/routing/collection-requests/${encodeURIComponent(id)}/cancel`),
   retryCollection: (id: string) =>
     request<Collection>('POST', `/routing/collection-requests/${encodeURIComponent(id)}/retry`),
-  impact: (days = 30, districtId: number | null = null) =>
+  impact: (days = 30, districtId: number | null = null, simulationId?: string) =>
     request<ImpactSummary>(
       'GET',
       '/management/impact' +
         query({
           days: String(days),
           districtId: districtId == null ? undefined : String(districtId),
+          simulationId,
         }),
     ),
+  simulate: (data: { regiao: string; mes: string; semente: number }) =>
+    request<StatusSimulacao>('POST', '/simulations', data),
+  activeSimulation: () => request<StatusSimulacao | null>('GET', '/simulations'),
+  simulation: (id: string) =>
+    request<StatusSimulacao>('GET', `/simulations/${encodeURIComponent(id)}`),
+  simulationReport: (id: string) =>
+    request<RelatorioVeracidade>('GET', `/simulations/${encodeURIComponent(id)}/report`),
+  deleteSimulation: (id: string) =>
+    request<null>('DELETE', `/simulations/${encodeURIComponent(id)}`),
   publicImpact: () => request<ImpactSummary>('GET', '/routing/impact'),
   preview: (latitude: number, longitude: number) =>
     request<DispatchPreview>(

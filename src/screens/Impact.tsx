@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import Svg, { Line, Rect, Text as SvgText } from 'react-native-svg';
 import { Clock3, Fuel, Leaf, MapPin, Route as RouteIcon, Wallet } from 'lucide-react-native';
 import { api } from '../api/client';
 import type { ImpactSummary } from '../api/impact';
 import { useResource } from '../hooks/useResource';
+import { SimulationLauncher, SimulationView } from './Simulation';
 import {
   Card,
   Chips,
@@ -30,14 +31,35 @@ const shortDate = (iso: string) =>
 type Period = '7' | '30' | '90';
 type DistrictKey = 'all' | '1' | '2' | '3';
 
+let simulacaoLembrada: string | null = null;
+
 export function ImpactScreen() {
   const [period, setPeriod] = useState<Period>('30');
   const [district, setDistrict] = useState<DistrictKey>('all');
+  const [simId, setSimIdState] = useState<string | null>(simulacaoLembrada);
+  const setSimId = (id: string | null) => {
+    simulacaoLembrada = id;
+    setSimIdState(id);
+  };
+  useEffect(() => {
+    api
+      .activeSimulation()
+      .then((s) => {
+        if (s?.status === 'done') setSimId(s.id);
+      })
+      .catch(() => undefined);
+  }, []);
   const data = useResource(
     () => api.impact(Number(period), district === 'all' ? null : Number(district)),
     `impact-${period}-${district}`,
   );
   const v = data.data;
+  if (simId)
+    return (
+      <Screen title="Impacto" subtitle="Um mês simulado no Grajaú com dados públicos">
+        <SimulationView id={simId} onDeleted={() => setSimId(null)} />
+      </Screen>
+    );
   return (
     <Screen
       title="Impacto"
@@ -45,6 +67,7 @@ export function ImpactScreen() {
       refreshing={data.refreshing}
       onRefresh={() => void data.refresh()}
     >
+      <SimulationLauncher onDone={setSimId} />
       <View style={{ gap: 10 }}>
         <Chips<Period>
           value={period}
