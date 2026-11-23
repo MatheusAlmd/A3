@@ -1,5 +1,6 @@
 import { ApiError, problemMessage } from './errors';
 import { demoRequest } from './demo';
+import type { ImpactSummary } from './impact';
 import type {
   Collection,
   CollectionInput,
@@ -23,8 +24,7 @@ import type {
 export const DEMO_MODE = process.env.EXPO_PUBLIC_DEMO_MODE !== 'false';
 // 'same-origin': o app é servido pelo próprio servidor da API (versão executável).
 const configuredUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5073';
-export const API_URL =
-  configuredUrl === 'same-origin' ? '' : configuredUrl.replace(/\/$/, '');
+export const API_URL = configuredUrl === 'same-origin' ? '' : configuredUrl.replace(/\/$/, '');
 let session: Login | null = null;
 let onExpired: (() => void) | null = null;
 export function configureSession(value: Login | null, expired?: () => void) {
@@ -143,6 +143,16 @@ export const api = {
     request<Collection>('POST', `/routing/collection-requests/${encodeURIComponent(id)}/cancel`),
   retryCollection: (id: string) =>
     request<Collection>('POST', `/routing/collection-requests/${encodeURIComponent(id)}/retry`),
+  impact: (days = 30, districtId: number | null = null) =>
+    request<ImpactSummary>(
+      'GET',
+      '/management/impact' +
+        query({
+          days: String(days),
+          districtId: districtId == null ? undefined : String(districtId),
+        }),
+    ),
+  publicImpact: () => request<ImpactSummary>('GET', '/routing/impact'),
   preview: (latitude: number, longitude: number) =>
     request<DispatchPreview>(
       'GET',

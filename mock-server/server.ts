@@ -4,6 +4,7 @@ import { createHmac, randomBytes, randomUUID, scryptSync, timingSafeEqual } from
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import path from 'node:path';
 import openapiSpec from '../docs/openapi.json';
+import { impactSummary } from '../src/api/impact';
 import type {
   Collection,
   CollectionStatus,
@@ -783,6 +784,18 @@ export function createMockApp(options: MockOptions = {}) {
         .filter((r) => (!status || r.status === status) && (!truckId || r.truckId === truckId))
         .map(summary),
     };
+  });
+  on('GET', '/management/impact', ({ user, url }) => {
+    requireManager(user());
+    const days = Number(url.searchParams.get('days') || 30);
+    const district = url.searchParams.get('districtId');
+    return {
+      body: impactSummary(Number.isFinite(days) ? days : 30, district ? Number(district) : null),
+    };
+  });
+  on('GET', '/routing/impact', ({ user }) => {
+    user();
+    return { body: impactSummary(30) };
   });
   on('GET', '/management/routes/current', ({ user }) => {
     const me = user();

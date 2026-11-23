@@ -1,4 +1,5 @@
 import { ApiError } from './errors';
+import { impactSummary } from './impact';
 import type {
   Collection,
   CollectionInput,
@@ -308,6 +309,11 @@ export async function demoRequest<T>(method: string, path: string, body?: any): 
   } else {
     if (!currentUser || !currentUser.active) throw new ApiError(401, 'Entre para continuar.');
     if (p === '/account/me') value = currentUser;
+    else if (p === '/management/impact') {
+      manager();
+      const d = url.searchParams.get('districtId');
+      value = impactSummary(Number(url.searchParams.get('days') || 30), d ? Number(d) : null);
+    } else if (p === '/routing/impact') value = impactSummary(30);
     else if (p === '/account/users') {
       manager();
       value = demoUsers.filter(

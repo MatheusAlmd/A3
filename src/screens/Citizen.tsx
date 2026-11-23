@@ -31,6 +31,7 @@ import {
 import { TruckArt } from '../ui/illustrations';
 import CityMap from '../ui/CityMap';
 import { colors as c, formatDate } from '../ui/theme';
+import { ImpactTeaser } from './Impact';
 
 export function CollectionCard({ item, onPress }: { item: Collection; onPress: () => void }) {
   return (
@@ -279,6 +280,7 @@ export function CitizenHome({ navigation }: any) {
           Cada solicitação ajuda a construir um entorno melhor.
         </Txt>
       </View>
+      <ImpactTeaser />
     </Screen>
   );
 }

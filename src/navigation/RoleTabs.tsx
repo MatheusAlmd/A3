@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ClipboardList,
   House,
+  Leaf,
   LayoutDashboard,
   Map,
   Route,
@@ -32,6 +33,7 @@ export function RoleTabs({ role }: { role: Role }) {
           ]
         : [
             { name: 'index', title: 'Visão geral', icon: LayoutDashboard },
+            { name: 'impact', title: 'Impacto', icon: Leaf },
             { name: 'routes', title: 'Rotas', icon: Route },
             { name: 'fleet', title: 'Frota', icon: Truck },
             { name: 'team', title: 'Equipe', icon: Users },

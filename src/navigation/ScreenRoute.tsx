@@ -17,6 +17,7 @@ function destination(name: string, role?: Role): string {
     Collections: '/citizen/collections',
     Current: '/driver',
     Overview: '/manager',
+    Impact: '/manager/impact',
     Routes: '/manager/routes',
     Fleet: '/manager/fleet',
     Team: '/manager/team',
