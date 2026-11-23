@@ -64,3 +64,15 @@ Os 3 requisitos principais (Must Have): **solicitar coleta**, **despacho automá
 **A distância é pelas ruas?** Ainda não, é em linha reta. Usar as ruas de verdade (OSRM) e a capacidade do caminhão está nos próximos passos.
 
 **Não sabe a resposta?** Diga que essa parte é do back e passe para o Anthony.
+
+## Impacto (resposta à banca)
+
+**Qual o impacto do projeto?** Em Capela do Socorro (605 mil habitantes), a simulação mostra 21,1 t de CO₂ e R$ 58,8 mil em diesel evitados em 30 dias. Em um ano, 254 t de CO₂ e R$ 707 mil.
+
+**De onde vêm esses números?** População (Censo 2022), frota e toneladas (Prefeitura), diesel (ANP) e fator de CO₂ são oficiais. Rotas e pedidos são simulados com 45 caminhões, 65 km por turno e um cenário de 12% menos km. Tudo marcado no banco e no app.
+
+**Onde está o banco nisso?** O trigger calcula o impacto de cada turno, a procedure registra a rota que terminou, as views agregam por dia, mês e distrito e a view materializada ranqueia os pontos críticos. Scripts em `docs/banco-impacto/`.
+
+**Por que isso importa?** A Lei 16.802/2018 obriga a cidade a cortar pela metade o CO₂ da frota de coleta até 2028.
+
+**E se perguntarem dos 12%?** É um parâmetro na tabela `parametro`. Com dados reais da concessionária, o cálculo fica exato sem mudar código.
