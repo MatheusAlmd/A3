@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Pressable } from 'react-native';
 import { ArrowRight, Leaf, Truck, LayoutDashboard, UserRound } from 'lucide-react-native';
-import { api, DEMO_MODE } from '../api/client';
+import { api, API_LABEL, DEMO_MODE } from '../api/client';
 import { useSession } from '../state/session';
 import {
   Brand,
@@ -160,6 +160,11 @@ export function LoginScreen({ navigation, route }: any) {
             Este é o modo de demonstração. Os atalhos da tela inicial permitem explorar os três
             perfis.
           </Notice>
+        )}
+        {!DEMO_MODE && (
+          <Txt size={11} color={c.muted}>
+            Servidor: {API_LABEL}
+          </Txt>
         )}
         <Field
           label="E-mail"

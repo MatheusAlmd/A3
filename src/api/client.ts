@@ -23,10 +23,46 @@ import type {
   UserInput,
 } from './types';
 
-export const DEMO_MODE = process.env.EXPO_PUBLIC_DEMO_MODE !== 'false';
+// Servidor escolhido na hora, só na web: ?api=https://servidor usa o back nesse endereço,
+// ?api=demo força o modo demonstração e ?api= (vazio) volta ao padrão do build.
+// A escolha fica guardada neste navegador.
+function escolhaNaWeb(): string | null {
+  if (typeof window === 'undefined' || !window.location?.search) return lerEscolha();
+  let valor: string | null = null;
+  try {
+    valor = new URLSearchParams(window.location.search).get('api');
+  } catch {
+    return lerEscolha();
+  }
+  if (valor === null) return lerEscolha();
+  try {
+    if (valor.trim() === '') window.localStorage?.removeItem('coleta.api');
+    else window.localStorage?.setItem('coleta.api', valor.trim());
+  } catch {}
+  return valor.trim() || null;
+}
+function lerEscolha(): string | null {
+  try {
+    return typeof window !== 'undefined'
+      ? (window.localStorage?.getItem('coleta.api') ?? null)
+      : null;
+  } catch {
+    return null;
+  }
+}
+const escolha = escolhaNaWeb();
+// Padrão: chama o back de verdade. O modo demonstração só liga com EXPO_PUBLIC_DEMO_MODE=true
+// (site de demonstração) ou com ?api=demo.
+export const DEMO_MODE = escolha
+  ? escolha === 'demo'
+  : process.env.EXPO_PUBLIC_DEMO_MODE === 'true';
 // 'same-origin': o app é servido pelo próprio servidor da API (versão executável).
-const configuredUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5073';
+const configuredUrl =
+  escolha && escolha !== 'demo'
+    ? escolha
+    : process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5073';
 export const API_URL = configuredUrl === 'same-origin' ? '' : configuredUrl.replace(/\/$/, '');
+export const API_LABEL = API_URL || 'o mesmo endereço do app';
 let session: Login | null = null;
 let onExpired: (() => void) | null = null;
 export function configureSession(value: Login | null, expired?: () => void) {
@@ -87,8 +123,11 @@ export async function request<T>(method: string, path: string, body?: unknown): 
   } catch (e) {
     if (e instanceof ApiError) throw e;
     if (controller.signal.aborted)
-      throw new ApiError(0, 'O servidor demorou para responder. Tente novamente.');
-    throw new ApiError(0, 'Não foi possível conectar. Verifique sua internet e tente novamente.');
+      throw new ApiError(0, `O servidor (${API_LABEL}) demorou para responder. Tente novamente.`);
+    throw new ApiError(
+      0,
+      `Não foi possível conectar ao servidor (${API_LABEL}). Confira se o back está ligado e se libera CORS para este endereço.`,
+    );
   } finally {
     clearTimeout(timeout);
   }

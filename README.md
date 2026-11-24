@@ -29,7 +29,7 @@ A versão web utiliza o mesmo código React Native, com um mapa ilustrativo. No 
 
 ## Modo demonstração
 
-O modo demonstração funciona sem servidor e está habilitado por padrão. Na entrada, escolha um dos três perfis. A troca de perfil também está disponível na tela de perfil.
+O modo demonstração funciona sem servidor. Ele só liga com `EXPO_PUBLIC_DEMO_MODE=true` (é assim que o site de demonstração é gerado) ou abrindo o app web com `?api=demo`; sem isso, o app chama o back. Na entrada, escolha um dos três perfis. A troca de perfil também está disponível na tela de perfil.
 
 Os dados são fictícios, compartilhados entre os perfis na mesma sessão e reiniciados ao recarregar o aplicativo. O login demonstrativo não verifica senhas reais. Solicitações, paradas, rotas, caminhões e usuários podem ser manipulados para explorar os fluxos.
 
@@ -76,9 +76,10 @@ Quando o back-end real estiver pronto, basta rodá-lo na porta 5073 no lugar do 
 Copie `.env.example` para `.env` e configure a URL do servidor:
 
 ```env
-EXPO_PUBLIC_DEMO_MODE=false
 EXPO_PUBLIC_API_URL=http://IP-DO-COMPUTADOR:5073
 ```
+
+O app chama o back por padrão (sem `EXPO_PUBLIC_DEMO_MODE=true`). A tela de login mostra o servidor em uso. No app web também dá para trocar o servidor sem gerar de novo: abra com `?api=https://endereco-do-back`; `?api=demo` volta ao modo demonstração e `?api=` volta ao padrão do build.
 
 Reinicie o Expo após alterar as variáveis. Em celular físico, use o IP do computador na mesma rede, com o servidor acessível por essa interface. No emulador Android, o endereço usual do computador é `10.0.2.2`. A prévia web pode exigir configuração de CORS no servidor. Use HTTPS no ambiente de produção.
 
